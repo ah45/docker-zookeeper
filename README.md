@@ -57,6 +57,21 @@ There are two additional variables for controlling JMX connectivity:
 * `JMX_PORT` the port to expose for JMX connections, see the JMX
   section below for more details. Defaults to `7000`.
 
+## Ports
+
+All of the standard ZooKeeper ports are exposed:
+
+* `2172` follower connections
+* `2173` leader elections
+* `2181` clients
+* `8080` HTTP [admin server](https://zookeeper.apache.org/doc/trunk/zookeeperAdmin.html#sc_adminserver)
+
+JMX will, by default be running on port 7000 though this can be
+changed via the `JMX_PORT` variable (which changes the _internal_ port
+on which the service runs.) Whilst the mappings to the other ports may
+vary JMX should _always_ be mapped to the same external port number as
+it runs on within the container.
+
 ## Cluster Management
 
 As noted in the previous section adding a new node to a cluster is as
