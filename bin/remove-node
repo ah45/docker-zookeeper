@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/opt/zookeeper/bin/zkCli.sh -server localhost:2181 reconfig -remove $@
