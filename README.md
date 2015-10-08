@@ -36,7 +36,7 @@ As a standalone instance:
 
 To join an existing cluster:
 
-    docker run -d --name zk2 -h zk2 --env ID=2 --env QUORUM=zk1:2181 -p 2182:2181 ah45/zookeeper
+    docker run -d --name zk2 -h zk2 --env QUORUM=zk1:2181 -p 2182:2181 ah45/zookeeper
 
 If you run those two commands on the same Docker host you'll have a 2
 node cluster, as simple as that.
@@ -45,9 +45,15 @@ node cluster, as simple as that.
 
 ### `ENV` Variables
 
-* `ID` the ZooKeeper server ID of this instance.
-* `QUORUM` the, optional, address of an existing ZooKeeper server
-  whose cluster this server should join.
+Specify a numeric `ID` value to have the container run as a standalone
+instance with that ID (other containers can join it to form a cluster.)
+
+Alternatively specify an existing instance to connect to in `QUORUM`
+and the container will join the existing cluster _using the next
+available server ID_.
+
+If you specify _both_ `ID` and `QUORUM` then the specified `ID` _will
+be ignored_ (so as to avoid any potential conflicts.)
 
 There are two additional variables for controlling JMX connectivity:
 

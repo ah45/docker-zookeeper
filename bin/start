@@ -1,57 +1,52 @@
 #!/bin/sh
 set -e
 
-if [ -z "$ID" ]; then
-    ID=`cat /data/myid`
-fi
-
-: ${ID:?"is not set"}
-
 IP=$(cat /etc/hosts | head -n1 | awk '{print $1}')
 ZK_CONNECT="$(hostname):2172:2173;2181"
+ZK_PARTICIPANT=$(echo $ZK_CONNECT | sed -r "s/(:[a-z]+)?;/:participant;/i")
 
-# update zookeeper node and server list
-if [ ! -f /data/myid ]; then
-    echo "[config] setting zookeeper node ID"
-    echo $ID > /data/myid
-fi
+if [ -f /data/myid -a -f /opt/zookeeper/conf/zoo.cfg.dynamic ]; then
+    echo "[config] found existing configuration"
+elif [ -n "$QUORUM" ]; then
+    echo "[config] connecting to existing quorum"
 
-if [ ! -f /opt/zookeeper/conf/zoo.cfg.dynamic ]; then
-    echo "[config] populating initial dynamic zookeeper server list"
+    # retrieve existing quorum server definitions and populate zoo.cfg.dynamic
+    ZK_SERVERS=`/opt/zookeeper/bin/zkCli.sh -server $QUORUM get /zookeeper/config | grep ^server`
 
-    ZK_PARTICIPANT=$(echo $ZK_CONNECT | sed -r "s/(:[a-z]+)?;/:participant;/i")
-
-    if [ -n "$QUORUM" ]; then
-        echo "[config] connecting to existing quorum"
-
-        # retrieve existing quorum server definitions and populate zoo.cfg.dynamic
-        ZK_SERVERS=`/opt/zookeeper/bin/zkCli.sh -server $QUORUM get /zookeeper/config | grep ^server`
-
-        if [ -z "$ZK_SERVERS" ]; then
-            echo "no servers returned from $QUORUM, unable to join quorum"
-            exit 1
-        fi
-
-        echo $ZK_SERVERS | sed -r "s/ /\n/g" > /opt/zookeeper/conf/zoo.cfg.dynamic
-
-        # add self as an observer to zoo.cfg.dynamic
-        ZK_OBSERVER=`echo $ZK_CONNECT | sed -r "s/(:[a-z]+)?;/:observer;/i"`
-        echo "server.$ID=$ZK_OBSERVER" >> /opt/zookeeper/conf/zoo.cfg.dynamic
-
-        # start in observer mode
-        /opt/zookeeper/bin/zkServer.sh start
-        sleep 3
-
-        # tell the quorum we want to join
-        /opt/zookeeper/bin/zkCli.sh -server $QUORUM reconfig -add "server.$ID=$ZK_PARTICIPANT"
-
-        # stop observing
-        /opt/zookeeper/bin/zkServer.sh stop
-        sleep 3
-    else
-        echo "[config] starting as a new quorum"
-        echo "server.$ID=$ZK_PARTICIPANT" >> /opt/zookeeper/conf/zoo.cfg.dynamic
+    if [ -z "$ZK_SERVERS" ]; then
+        echo "no servers returned from $QUORUM, unable to join quorum"
+        exit 1
     fi
+
+    # determine next available ID from existing servers and use as our ID
+    ID=`echo $ZK_SERVERS | awk 'BEGIN {FS="." ; RS=" " ; max=0} {if ($2 > max) max=$2} END {print ++max}'`
+    echo $ID > /data/myid
+
+    echo "[config] joining quorum as node $ID"
+
+    echo $ZK_SERVERS | sed -r "s/ /\n/g" > /opt/zookeeper/conf/zoo.cfg.dynamic
+
+    # add self as an observer to zoo.cfg.dynamic
+    ZK_OBSERVER=`echo $ZK_CONNECT | sed -r "s/(:[a-z]+)?;/:observer;/i"`
+    echo "server.$ID=$ZK_OBSERVER" >> /opt/zookeeper/conf/zoo.cfg.dynamic
+
+    # start in observer mode
+    /opt/zookeeper/bin/zkServer.sh start
+    sleep 3
+
+    # tell the quorum we want to join
+    /opt/zookeeper/bin/zkCli.sh -server $QUORUM reconfig -add "server.$ID=$ZK_PARTICIPANT"
+
+    # stop observing
+    /opt/zookeeper/bin/zkServer.sh stop
+    sleep 3
+elif [ -n "$ID" ]; then
+    echo "[config] starting as a new quorum with node ID $ID"
+    echo $ID > /data/myid
+    echo "server.$ID=$ZK_PARTICIPANT" >> /opt/zookeeper/conf/zoo.cfg.dynamic
+else
+    echo "[config] failed, no quorum or ID specified"
+    exit 1
 fi
 
 # set JMX opts
