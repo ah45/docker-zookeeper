@@ -29,10 +29,10 @@ COPY etc/zoo.cfg /opt/zookeeper/conf/
 EXPOSE 2172 2173 2181 8080 7000
 
 # set service names for registrator
-ENV SERVICE_2172_NAME zookeeper
-ENV SERVICE_2173_NAME zookeeper
+ENV SERVICE_2172_NAME zookeeper-follower
+ENV SERVICE_2173_NAME zookeeper-election
 ENV SERVICE_2181_NAME zookeeper
-ENV SERVICE_8080_NAME zookeeper
+ENV SERVICE_8080_NAME zookeeper-admin
 ENV SERVICE_7000_NAME jmx
 
 # register a consul health check on the public zookeeper port
