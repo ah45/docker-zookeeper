@@ -11,6 +11,7 @@ elif [ -n "$QUORUM" ]; then
     echo "[config] connecting to existing quorum"
 
     # retrieve existing quorum server definitions and populate zoo.cfg.dynamic
+    QUORUM=`echo $QUORUM | sed -e "s/[ ,;]/\n/" | head -n 1`
     ZK_SERVERS=`/opt/zookeeper/bin/zkCli.sh -server $QUORUM get /zookeeper/config | grep ^server`
 
     if [ -z "$ZK_SERVERS" ]; then
