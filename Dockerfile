@@ -36,7 +36,7 @@ ENV SERVICE_8080_NAME zookeeper-admin
 ENV SERVICE_7000_NAME jmx
 
 # register a consul health check on the public zookeeper port
-ENV SERVICE_2181_CHECK_SCRIPT="echo ruok | nc $SERVICE_IP $SERVICE_PORT | grep imok"
+ENV SERVICE_2181_CHECK_SCRIPT="echo ruok | nc \$SERVICE_IP \$SERVICE_PORT | grep imok"
 
 # expose mount points for service data
 VOLUME /data
