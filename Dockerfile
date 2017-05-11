@@ -12,15 +12,17 @@ RUN apt-get update \
 
 # Install Zookeeper from official binary release
 ENV APACHE_MIRROR http://mirror.ox.ac.uk/sites/rsync.apache.org
-ENV ZK_VERSION 3.5.1-alpha
+ENV ZK_VERSION 3.5.3-beta
 
 RUN cd /tmp \
- && wget -q $APACHE_MIRROR/zookeeper/zookeeper-$ZK_VERSION/zookeeper-$ZK_VERSION.tar.gz \
- && mkdir -p /opt \
- && tar xfz /tmp/zookeeper-$ZK_VERSION.tar.gz -C /opt \
- && rm /tmp/*.tar.gz \
+ && wget -q $APACHE_MIRROR/zookeeper/zookeeper-$ZK_VERSION/zookeeper-$ZK_VERSION.tar.gz
+
+RUN mkdir -p /opt \
+ && tar xf /tmp/zookeeper-$ZK_VERSION.tar.gz -C /opt \
  && ln -s /opt/zookeeper-$ZK_VERSION /opt/zookeeper \
  && mkdir -p /data
+
+RUN rm /tmp/*.tar.gz
 
 # copy configuration files
 COPY etc/zoo.cfg /opt/zookeeper/conf/
