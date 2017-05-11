@@ -6,7 +6,7 @@ MAINTAINER Adam Harper <docker@adam-harper.com>
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update \
- && apt-get install -y wget supervisor \
+ && apt-get install -y wget \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -44,7 +44,6 @@ ENV SERVICE_8080_CHECK_HTTP=/commands/ruok
 VOLUME /data
 
 # setup runtime environment
-COPY etc/supervisor-zookeeper.conf /etc/supervisor/conf.d/
 COPY bin/* /usr/local/bin/
 RUN chmod +x /usr/local/bin/*
 CMD ["/usr/local/bin/start", "", ""]

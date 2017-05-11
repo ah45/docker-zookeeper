@@ -59,4 +59,4 @@ JVMFLAGS="$JVMFLAGS -Djava.rmi.server.hostname=${JMX_HOST:-$IP}"
 export JVMFLAGS
 
 echo "[start] running as node $ID on $ZK_CONNECT"
-supervisord -n -c /etc/supervisor/supervisord.conf
+/opt/zookeeper/bin/zkServer.sh start-foreground
